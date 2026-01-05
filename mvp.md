@@ -34,7 +34,7 @@ Plus: **interactive and user-friendly** UI with **simple animations** (micro-int
 1. User opens the app.
 2. Taps **“Start Daily Quiz”**.
 3. App shows **Question 1/10**: Korean word.
-4. User types (or chooses) English answer.
+4. User chooses the English answer from options.
 5. App gives **instant feedback** (Correct/Incorrect) with a small animation.
 6. Repeat until **10 questions** done.
 7. End screen shows **score + list of correct/incorrect**.
@@ -51,7 +51,7 @@ Plus: **interactive and user-friendly** UI with **simple animations** (micro-int
 
 ### 2) Answer input + validation
 
-* User submits an English answer.
+* User selects from 4 English options.
 * Compare with the correct translation.
 * MVP-friendly validation approach:
 
@@ -79,6 +79,7 @@ Keep it minimal but polished:
 * **Correct**: subtle bounce/checkmark.
 * **Incorrect**: shake animation + show correct answer.
 * Progress indicator (e.g., “3/10”).
+* Option pick: quick highlight animation on selection.
 
 This is enough to feel interactive without building a full game.
 
@@ -123,8 +124,8 @@ Storage can be local first (fast MVP):
 2. **Quiz Screen**
 
 * KR word prompt
-* answer input
-* submit button
+* 4-option multiple choice
+* select + next button
 * feedback animation
 * next button (or auto-advance after feedback)
 

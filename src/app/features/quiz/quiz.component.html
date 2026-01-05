@@ -1,0 +1,86 @@
+<section class="space-y-6">
+  <div class="flex items-center justify-between">
+    <p class="text-sm uppercase tracking-[0.2em] text-slate-400">
+      Question {{ quizStore.progressText() }}
+    </p>
+    <a
+      class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300 hover:text-emerald-200"
+      routerLink="/"
+    >
+      Exit
+    </a>
+  </div>
+
+  @if (quizStore.status() === 'loading') {
+    <div class="animate-quiz-enter rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-xl">
+      <p class="text-sm text-slate-300">Loading your quiz...</p>
+    </div>
+  } @else if (quizStore.quizWords().length === 0) {
+    <div class="animate-quiz-enter rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-xl">
+      <p class="text-lg font-semibold text-slate-100">All words mastered.</p>
+      <p class="mt-2 text-sm text-slate-400">
+        Add more vocabulary or reset your progress to keep practicing.
+      </p>
+    </div>
+    <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+      <button
+        class="inline-flex items-center justify-center rounded-full border border-rose-400/40 bg-rose-400/10 px-6 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-300 hover:text-rose-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+        type="button"
+        (click)="resetProgress()"
+      >
+        Reset progress
+      </button>
+    </div>
+  } @else {
+    <div
+      class="animate-quiz-enter rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-xl"
+      [class.animate-quiz-correct]="quizStore.feedback() === 'correct'"
+      [class.animate-quiz-shake]="quizStore.feedback() === 'incorrect'"
+    >
+      <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Korean word</p>
+      @if (quizStore.currentWord(); as word) {
+        <p class="mt-4 text-4xl font-semibold text-slate-50">{{ word.kr }}</p>
+      } @else {
+        <p class="mt-4 text-2xl text-slate-400">No words available.</p>
+      }
+    </div>
+
+    <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+      <p class="text-sm font-semibold text-slate-200">Choose the correct English meaning</p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        @for (option of quizStore.currentOptions(); track option) {
+          <button
+            class="rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+            (click)="submit(option)"
+            [disabled]="isAnswered()"
+            [class.animate-quiz-choice]="
+              isAnswered() && selectedAnswer() === option && quizStore.feedback() !== 'none'
+            "
+          >
+            {{ option }}
+          </button>
+        }
+      </div>
+
+      <div aria-live="polite" class="mt-4 text-sm">
+        @if (quizStore.feedback() === 'correct') {
+          <p class="font-semibold text-emerald-300">Correct!</p>
+        } @else if (quizStore.feedback() === 'incorrect') {
+          <p class="font-semibold text-rose-300">Incorrect. Try the next one.</p>
+        }
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button
+          class="inline-flex items-center justify-center rounded-full border border-slate-700 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+          type="button"
+          (click)="next()"
+          [disabled]="!isAnswered()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+</section>

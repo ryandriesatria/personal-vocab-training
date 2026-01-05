@@ -1,3 +1,58 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+
+@layer utilities {
+  @keyframes quiz-card-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes quiz-correct {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    45% {
+      transform: scale(1.03);
+    }
+  }
+
+  @keyframes quiz-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-6px);
+    }
+    50% {
+      transform: translateX(6px);
+    }
+    75% {
+      transform: translateX(-4px);
+    }
+  }
+
+  .animate-quiz-enter {
+    animation: quiz-card-enter 320ms ease-out;
+  }
+
+  .animate-quiz-correct {
+    animation: quiz-correct 220ms ease-out;
+  }
+
+  .animate-quiz-shake {
+    animation: quiz-shake 300ms ease-in-out;
+  }
+
+  .animate-quiz-choice {
+    animation: quiz-correct 180ms ease-out;
+  }
+}

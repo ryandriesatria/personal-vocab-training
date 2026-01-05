@@ -1,0 +1,73 @@
+<section class="space-y-6">
+  <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl">
+    <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Daily score</p>
+    @if (latestAttempt(); as attempt) {
+      <p class="mt-3 text-4xl font-semibold text-emerald-300">
+        {{ attempt.score }} / {{ attempt.items.length }}
+      </p>
+      <p class="mt-2 text-sm text-slate-400">
+        Results show the correct answer, your answer, and a status badge.
+      </p>
+    } @else {
+      <p class="mt-3 text-2xl text-slate-300">No quiz attempts yet.</p>
+    }
+  </div>
+
+  <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+    <h2 class="text-lg font-semibold text-slate-100">Review</h2>
+    <div class="mt-4 space-y-3 text-sm text-slate-300">
+      @if (answers().length === 0) {
+        <p class="text-slate-400">Complete a quiz to see the review list.</p>
+      } @else {
+        @for (answer of answers(); track answer.wordId) {
+          <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p class="font-semibold text-slate-100">{{ answer.kr }}</p>
+                <p class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {{ answer.correctEn }}
+                </p>
+              </div>
+              @if (answer.isCorrect) {
+                <span
+                  class="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200"
+                >
+                  Correct
+                </span>
+              } @else {
+                <span
+                  class="rounded-full border border-rose-400/40 bg-rose-400/10 px-3 py-1 text-xs text-rose-200"
+                >
+                  Incorrect
+                </span>
+              }
+            </div>
+            <p class="mt-2 text-slate-400">Your answer: {{ answer.userAnswer }}</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    <a
+      class="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+      routerLink="/quiz"
+    >
+      Start new quiz
+    </a>
+    <button
+      class="inline-flex items-center justify-center rounded-full border border-rose-400/40 bg-rose-400/10 px-6 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-300 hover:text-rose-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+      type="button"
+      (click)="resetProgress()"
+    >
+      Reset progress
+    </button>
+    <a
+      class="inline-flex items-center justify-center rounded-full border border-slate-700 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+      routerLink="/"
+    >
+      Back home
+    </a>
+  </div>
+</section>
