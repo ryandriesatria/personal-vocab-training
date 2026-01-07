@@ -1,18 +1,35 @@
 <section class="space-y-6">
-  <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl">
-    <h2 class="text-2xl font-semibold text-slate-50">Welcome back.</h2>
-    <p class="mt-2 text-sm text-slate-300">
-      Start a focused 10-word session. Every correct answer gets removed from future quizzes.
+  <div class="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-lg">
+    <h2 class="text-2xl font-semibold text-[var(--app-text)]">Welcome back.</h2>
+    <p class="mt-2 text-sm text-[var(--app-muted)]">
+      Start a focused 10-word session. Every correct answer counts toward your completion totals.
     </p>
     <div class="mt-6 flex flex-wrap gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--app-muted)]" for="level">
+          Level
+        </label>
+        <select
+          class="rounded-full border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
+          id="level"
+          name="level"
+          [value]="selectedLevel()"
+          (change)="selectedLevel.set(($any($event.target).value))"
+        >
+          @for (level of levels; track level) {
+            <option [value]="level">{{ level }}</option>
+          }
+        </select>
+        <button
+          class="inline-flex items-center cursor-pointer justify-center rounded-full bg-[var(--app-accent-strong)] px-6 py-2 text-sm font-semibold text-[var(--app-surface)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent-strong)]"
+          type="button"
+          (click)="startQuiz()"
+        >
+          Start Daily Quiz
+        </button>
+      </div>
       <a
-        class="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
-        routerLink="/quiz"
-      >
-        Start Daily Quiz
-      </a>
-      <a
-        class="inline-flex items-center justify-center rounded-full border border-slate-700 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+        class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-6 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
         routerLink="/result"
       >
         View last result
@@ -21,26 +38,39 @@
   </div>
 
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Mastered</p>
-      <p class="mt-2 text-3xl font-semibold text-emerald-300">{{ masteredCount() }}</p>
-      <p class="mt-1 text-sm text-slate-400">Total words removed from rotation.</p>
-    </div>
-    <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Remaining</p>
-      <p class="mt-2 text-3xl font-semibold text-slate-100">{{ remainingCount() }}</p>
-      <p class="mt-1 text-sm text-slate-400">Words left to review in the pool.</p>
+    <div class="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">Completed</p>
+      <p class="mt-2 text-3xl font-semibold text-[var(--app-accent-strong)]">
+        {{ completedCount() }}
+      </p>
+      <p class="mt-1 text-sm text-[var(--app-muted)]">Total correct answers logged.</p>
     </div>
   </div>
 
-  <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+  <div class="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-lg">
+    <p class="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">Completion by level</p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      @for (level of levels; track level) {
+        <div class="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">{{ level }}</p>
+          <p class="mt-2 text-2xl font-semibold text-[var(--app-text)]">
+            {{ progress().completionByLevel[level] }}
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-lg">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Settings</p>
-        <h2 class="mt-2 text-lg font-semibold text-slate-100">Import / Export Progress</h2>
+        <p class="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">Settings</p>
+        <h2 class="mt-2 text-lg font-semibold text-[var(--app-text)]">
+          Import / Export Progress
+        </h2>
       </div>
       <button
-        class="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+        class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
         type="button"
         (click)="refreshExport()"
       >
@@ -50,18 +80,18 @@
 
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <div class="space-y-2">
-        <label class="text-sm font-semibold text-slate-200" for="export-progress">
+        <label class="text-sm font-semibold text-[var(--app-text)]" for="export-progress">
           Export
         </label>
         <textarea
-          class="min-h-[160px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+          class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
           id="export-progress"
           name="export-progress"
           readonly
           [formControl]="exportControl"
         ></textarea>
         <button
-          class="inline-flex items-center justify-center rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+          class="inline-flex items-center justify-center rounded-full bg-[var(--app-accent-strong)] px-4 py-2 text-xs font-semibold text-[var(--app-surface)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent-strong)]"
           type="button"
           (click)="copyExport()"
         >
@@ -70,11 +100,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold text-slate-200" for="import-progress">
+        <label class="text-sm font-semibold text-[var(--app-text)]" for="import-progress">
           Import
         </label>
         <textarea
-          class="min-h-[160px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+          class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
           id="import-progress"
           name="import-progress"
           placeholder="Paste your progress JSON here"
@@ -82,13 +112,13 @@
         ></textarea>
         <div class="text-xs">
           @if (importError()) {
-            <p class="text-rose-300">{{ importError() }}</p>
+            <p class="text-[var(--app-danger)]">{{ importError() }}</p>
           } @else if (importSuccess()) {
-            <p class="text-emerald-300">Import complete.</p>
+            <p class="text-[var(--app-accent-strong)]">Import complete.</p>
           }
         </div>
         <button
-          class="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-emerald-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+          class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
           type="button"
           (click)="importProgress()"
         >

@@ -1,6 +1,8 @@
 import { QuizAttempt } from './quiz-attempt.model';
+import { VocabLevel } from './vocab-word.model';
 
 export interface ProgressState {
-  masteredIds: string[];
+  completedIds: string[];
+  completionByLevel: Record<VocabLevel, number>;
   attempts: QuizAttempt[];
 }

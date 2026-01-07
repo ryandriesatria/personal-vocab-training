@@ -3,13 +3,21 @@ import { firstValueFrom, take } from 'rxjs';
 
 import { VocabRepositoryService } from '../services/vocab-repository.service';
 import { ProgressStorageService } from '../services/progress-storage.service';
-import { ProgressState, QuizAnswer, QuizAttempt, VocabWord } from '../models';
+import { ProgressState, QuizAnswer, QuizAttempt, VocabLevel, VocabWord } from '../models';
 import { normalizeAnswer, shuffle } from '../utils/quiz-helpers';
 
 type QuizStatus = 'idle' | 'loading' | 'inQuiz' | 'done';
 type QuizFeedback = 'none' | 'correct' | 'incorrect';
 
-const EMPTY_PROGRESS: ProgressState = { masteredIds: [], attempts: [] };
+const LEVELS: VocabLevel[] = ['A', 'B', 'C', 'D', 'MISC'];
+const EMPTY_PROGRESS: ProgressState = {
+  completedIds: [],
+  completionByLevel: LEVELS.reduce<Record<VocabLevel, number>>((acc, level) => {
+    acc[level] = 0;
+    return acc;
+  }, {} as Record<VocabLevel, number>),
+  attempts: []
+};
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +34,7 @@ export class QuizStore {
   readonly status = signal<QuizStatus>('idle');
   readonly feedback = signal<QuizFeedback>('none');
   readonly progress = signal<ProgressState>(EMPTY_PROGRESS);
+  readonly selectedLevel = signal<VocabLevel>('A');
 
   readonly currentWord = computed(() => this.quizWords()[this.index()] ?? null);
   readonly currentOptions = computed(() => {
@@ -35,7 +44,7 @@ export class QuizStore {
     }
 
     const correct = word.en[0] ?? '';
-    const distractors = this.words()
+    const distractors = this.remainingPool()
       .filter((item) => item.id !== word.id && item.en.length > 0)
       .map((item) => item.en[0])
       .filter((value) => value && value !== correct);
@@ -59,14 +68,14 @@ export class QuizStore {
 
     try {
       const words = await firstValueFrom(this.vocabRepository.getAllWords().pipe(take(1)));
-      const progress = this.progressStorage.load();
-      const masteredSet = new Set(progress.masteredIds);
-      const remaining = words.filter((word) => !masteredSet.has(word.id));
-      const selected = shuffle(remaining).slice(0, 10);
+      const progress = await this.progressStorage.load();
+      const level = this.selectedLevel();
+      const pool = words.filter((word) => word.level === level);
+      const selected = shuffle(pool).slice(0, 10);
 
       this.words.set(words);
       this.progress.set(progress);
-      this.remainingPool.set(remaining);
+      this.remainingPool.set(pool);
       this.quizWords.set(selected);
       this.index.set(0);
       this.answers.set([]);
@@ -74,6 +83,10 @@ export class QuizStore {
     } catch {
       this.status.set('idle');
     }
+  }
+
+  setLevel(level: VocabLevel): void {
+    this.selectedLevel.set(level);
   }
 
   submitAnswer(answer: string): void {
@@ -114,7 +127,7 @@ export class QuizStore {
 
     const nextIndex = this.index() + 1;
     if (nextIndex >= this.quizWords().length) {
-      this.finish();
+      void this.finish();
       return;
     }
 
@@ -122,12 +135,27 @@ export class QuizStore {
     this.feedback.set('none');
   }
 
-  finish(): void {
+  async finish(): Promise<void> {
     const answers = this.answers();
     const score = answers.filter((answer) => answer.isCorrect).length;
     const correctIds = answers.filter((answer) => answer.isCorrect).map((answer) => answer.wordId);
     const progress = this.progress();
-    const masteredIds = Array.from(new Set([...progress.masteredIds, ...correctIds]));
+    const wordMap = new Map(this.words().map((word) => [word.id, word]));
+    const completedIds = new Set(progress.completedIds);
+    const completionByLevel = { ...progress.completionByLevel };
+
+    for (const wordId of correctIds) {
+      if (completedIds.has(wordId)) {
+        continue;
+      }
+      const word = wordMap.get(wordId);
+      if (!word) {
+        continue;
+      }
+      completedIds.add(wordId);
+      completionByLevel[word.level] = (completionByLevel[word.level] ?? 0) + 1;
+    }
+
     const attempt: QuizAttempt = {
       dateIso: new Date().toISOString(),
       score,
@@ -135,11 +163,12 @@ export class QuizStore {
     };
 
     const nextProgress: ProgressState = {
-      masteredIds,
+      completedIds: Array.from(completedIds),
+      completionByLevel,
       attempts: [attempt, ...progress.attempts]
     };
 
-    this.progressStorage.save(nextProgress);
+    await this.progressStorage.save(nextProgress);
     this.progress.set(nextProgress);
     this.status.set('done');
   }

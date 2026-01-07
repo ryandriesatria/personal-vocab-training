@@ -51,12 +51,11 @@ export class QuizComponent implements OnInit {
   }
 
   resetProgress(): void {
-    const shouldReset = window.confirm('Reset all progress? This will clear mastered words.');
+    const shouldReset = window.confirm('Reset all progress? This will clear completion totals.');
     if (!shouldReset) {
       return;
     }
-    this.progressStorage.reset();
-    void this.quizStore.initQuiz().then(() => {
+    void this.progressStorage.reset().then(() => this.quizStore.initQuiz()).then(() => {
       this.isAnswered.set(false);
       this.selectedAnswer.set('');
     });

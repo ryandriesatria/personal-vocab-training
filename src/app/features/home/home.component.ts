@@ -6,12 +6,12 @@ import {
   OnInit,
   signal
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { ProgressStorageService } from '../../core/services/progress-storage.service';
-import { VocabRepositoryService } from '../../core/services/vocab-repository.service';
-import { ProgressState } from '../../core/models';
+import { ProgressState, VocabLevel } from '../../core/models';
+import { QuizStore } from '../../core/store/quiz.store';
 
 @Component({
   selector: 'app-home',
@@ -21,24 +21,32 @@ import { ProgressState } from '../../core/models';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit {
-  private readonly vocabRepository = inject(VocabRepositoryService);
   private readonly progressStorage = inject(ProgressStorageService);
+  private readonly quizStore = inject(QuizStore);
+  private readonly router = inject(Router);
 
-  readonly progress = signal(this.progressStorage.load());
+  readonly progress = signal<ProgressState>({
+    completedIds: [],
+    completionByLevel: { A: 0, B: 0, C: 0, D: 0, MISC: 0 },
+    attempts: []
+  });
   readonly exportControl = new FormControl('', { nonNullable: true });
   readonly importControl = new FormControl('', { nonNullable: true });
   readonly importError = signal('');
   readonly importSuccess = signal(false);
-  readonly totalWords = computed(() => this.vocabRepository.words().length);
-  readonly masteredCount = computed(() => this.progress().masteredIds.length);
-  readonly remainingCount = computed(() => {
-    const remaining = this.totalWords() - this.masteredCount();
-    return remaining < 0 ? 0 : remaining;
-  });
+  readonly completedCount = computed(() => this.progress().completedIds.length);
+  readonly levels: VocabLevel[] = ['A', 'B', 'C', 'D', 'MISC'];
+  readonly selectedLevel = signal<VocabLevel>('A');
 
-  ngOnInit(): void {
-    this.progress.set(this.progressStorage.load());
-    this.exportControl.setValue(JSON.stringify(this.progress(), null, 2));
+  async ngOnInit(): Promise<void> {
+    const loaded = await this.progressStorage.load();
+    this.progress.set(loaded);
+    this.exportControl.setValue(JSON.stringify(loaded, null, 2));
+  }
+
+  startQuiz(): void {
+    this.quizStore.setLevel(this.selectedLevel());
+    void this.router.navigateByUrl('/quiz');
   }
 
   refreshExport(): void {
@@ -52,7 +60,7 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  importProgress(): void {
+  async importProgress(): Promise<void> {
     this.importError.set('');
     this.importSuccess.set(false);
 
@@ -70,13 +78,18 @@ export class HomeComponent implements OnInit {
       return;
     }
 
-    if (!parsed || !Array.isArray(parsed.masteredIds) || !Array.isArray(parsed.attempts)) {
+    if (
+      !parsed ||
+      !Array.isArray(parsed.completedIds) ||
+      !Array.isArray(parsed.attempts) ||
+      !parsed.completionByLevel
+    ) {
       this.importError.set('JSON does not match the expected progress shape.');
       return;
     }
 
-    this.progressStorage.save(parsed);
-    const next = this.progressStorage.load();
+    await this.progressStorage.save(parsed);
+    const next = await this.progressStorage.load();
     this.progress.set(next);
     this.exportControl.setValue(JSON.stringify(next, null, 2));
     this.importControl.setValue('');

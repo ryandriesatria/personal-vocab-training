@@ -15,16 +15,23 @@ Example:
 ]
 ```
 
-### Progress storage (JSON in LocalStorage)
+### Progress storage (JSON in IndexedDB)
 
-* Save mastered words + quiz history as a JSON blob in LocalStorage.
-* Key example: `kr-en-vocab-progress-v1`
+* Save completed words + quiz history as a JSON blob in IndexedDB.
+* Key example: `kr-vocab-progress` (IndexedDB DB name)
 
 Shape:
 
 ```json
 {
-  "masteredIds": ["w001", "w014"],
+  "completedIds": ["w001", "w014"],
+  "completionByLevel": {
+    "A": 2,
+    "B": 4,
+    "C": 1,
+    "D": 0,
+    "MISC": 0
+  },
   "attempts": [
     {
       "dateIso": "2026-01-05",
@@ -50,7 +57,7 @@ This keeps everything JSON-based and trivial to export/backup later.
   * loads `assets/vocab.json`
 * `ProgressStorageService`
 
-  * reads/writes LocalStorage JSON
+  * reads/writes IndexedDB JSON
 * `QuizStore` (signal-based)
 
   * state machine for quiz flow (current question, answers, results)
@@ -62,6 +69,10 @@ This keeps everything JSON-based and trivial to export/backup later.
 
   * Angular animations OR CSS (Tailwind + small keyframes)
   * Keep MVP: card transition + correct/incorrect feedback
+* PWA
+
+  * Angular service worker for offline caching
+  * Cache app shell + vocab assets
 
 ---
 
@@ -120,10 +131,10 @@ Create model types:
 
 ```text
 Create TypeScript model interfaces for:
-VocabWord { id: string; kr: string; en: string[] }
+VocabWord { id: string; kr: string; en: string[]; level: 'A' | 'B' | 'C' | 'D' | 'MISC' }
 QuizAnswer { wordId: string; userAnswer: string; isCorrect: boolean }
 QuizAttempt { dateIso: string; score: number; items: QuizAnswer[] }
-ProgressState { masteredIds: string[]; attempts: QuizAttempt[] }
+ProgressState { completedIds: string[]; completionByLevel: Record<Level, number>; attempts: QuizAttempt[] }
 Place them in src/app/core/models/*.ts and export from an index barrel.
 ```
 
@@ -151,7 +162,7 @@ Add necessary providers/imports in the app config (or module) for HttpClient.
 
 ---
 
-# Step 3 — LocalStorage JSON progress service
+# Step 3 — IndexedDB progress service
 
 ### Build
 
@@ -164,14 +175,14 @@ Add necessary providers/imports in the app config (or module) for HttpClient.
 
 ### Acceptance criteria
 
-* If LocalStorage empty → returns `{ masteredIds: [], attempts: [] }`
+* If IndexedDB empty → returns `{ completedIds: [], completionByLevel: {...}, attempts: [] }`
 * If corrupted JSON → fallback without crashing
 
 ### Codex prompt
 
 ```text
-Implement ProgressStorageService using LocalStorage JSON.
-Key: "kr-en-vocab-progress-v1".
+Implement ProgressStorageService using IndexedDB.
+DB name: "kr-vocab-progress".
 Methods: load(): ProgressState, save(state), reset().
 load() must handle missing or invalid JSON and return empty default state.
 Write minimal unit tests for load/save behavior.
@@ -188,7 +199,7 @@ Create a `QuizStore` using signals:
 * state:
 
   * `words: VocabWord[]`
-  * `remainingPool: VocabWord[]` (unmastered)
+  * `remainingPool: VocabWord[]` (selected level pool)
   * `quizWords: VocabWord[]` (10)
   * `index: number`
   * `answers: QuizAnswer[]`
@@ -196,21 +207,21 @@ Create a `QuizStore` using signals:
   * `feedback: 'none' | 'correct' | 'incorrect'` (for animations)
 * actions:
 
-  * `initQuiz()`: select 10 unique from unmastered
+  * `setLevel(level: 'A' | 'B' | 'C' | 'D' | 'MISC')`
+  * `initQuiz()`: select 10 unique from selected level pool
   * `submitAnswer(answer: string)` (option selection)
   * `next()`
-  * `finish()`: compute score, persist attempt, persist masteredIds for correct answers
+  * `finish()`: compute score, persist attempt, persist completedIds for correct answers
 
 Selection rules:
 
-* Only unmastered words
+* Only words from the selected level
 * Shuffle, take first 10
 * If pool < 10: take all available
 
 ### Acceptance criteria
 
-* Correctly answered words are added to mastered set
-* Those words never appear in subsequent `initQuiz()` calls
+* Correctly answered words increment completion totals by level
 * Quiz always has unique words
 
 ### Codex prompt
@@ -219,10 +230,11 @@ Selection rules:
 Create a signal-based QuizStore (Angular 21) that:
 - loads all vocab via VocabRepositoryService
 - loads progress via ProgressStorageService
-- initQuiz() selects up to 10 unique unmastered words (shuffle then slice)
+- setLevel() stores the selected level for the next quiz
+- initQuiz() selects up to 10 unique words from that level (shuffle then slice)
 - submitAnswer() marks current answer correct/incorrect (case-insensitive, trim)
 - build 4-option multiple-choice list per question (1 correct + 3 distractors)
-- correct answers add wordId to masteredIds when finishing
+- correct answers add wordId to completedIds and update completionByLevel
 - after 10 questions, status becomes 'done' and a QuizAttempt is saved
 Include derived signals: currentWord, progressText (e.g., "3/10"), scoreSoFar.
 Also create pure helper functions for shuffle and normalization and unit test them.
@@ -256,7 +268,7 @@ Also create pure helper functions for shuffle and normalization and unit test th
 **HomeComponent**:
 
 * Start button
-* Mastered count / remaining count
+* Completion totals by level
 
 ### Acceptance criteria
 
@@ -267,7 +279,7 @@ Also create pure helper functions for shuffle and normalization and unit test th
 
 ```text
 Build HomeComponent, QuizComponent, ResultComponent using Tailwind.
-Home: Start Daily Quiz button. Display mastered count and remaining count.
+Home: Start Daily Quiz button, level selector, and completion totals by level.
 Quiz: show current KR word in a card, 4-option buttons, feedback message, progress indicator.
 Result: show score and list of answers with badges, plus buttons to start new quiz and reset progress.
 Wire navigation using Angular Router and QuizStore.
@@ -312,20 +324,20 @@ Ensure animations are triggered by QuizStore feedback state.
 
 ### Build
 
-* If pool is empty: show “All mastered” state and link to reset or add more vocab
+* If pool is empty: show “No words for this level” state and link back to level selection
 * Add `Reset progress` button with confirmation
 * Prevent double submit (disable button briefly after submit)
 
 ### Acceptance criteria
 
 * No crashes when vocab < 10 or pool empty
-* Reset clears masteredIds and attempts
+* Reset clears completedIds and attempts
 
 ### Codex prompt
 
 ```text
 Handle edge cases:
-- If there are 0 unmastered words, show an 'All words mastered' screen (home or quiz) with Reset button.
+- If selected level has 0 words, show a "No words for this level" screen with a link back to Home.
 - Disable submit button after submission until next question.
 - Add a reset confirmation modal (simple) or confirm() for MVP.
 Implement these without introducing complex state.
@@ -345,7 +357,7 @@ Optional but nice for you:
 ```text
 Add a simple Import/Export progress feature:
 - Export: show JSON in a textarea and a copy button.
-- Import: paste JSON, validate shape, then overwrite LocalStorage state.
+- Import: paste JSON, validate shape, then overwrite IndexedDB state.
 Keep it in a Settings section on the Home screen.
 ```
 
@@ -355,8 +367,9 @@ Keep it in a Settings section on the Home screen.
 
 * Start quiz, answer 10 KR→EN words
 * Correct answers are recorded into JSON progress
-* Future quizzes exclude mastered words
+* Completion totals tracked by level
 * Smooth UI + simple animations
-* Works fully offline with vocab in assets and progress in LocalStorage
+* Works fully offline with vocab in assets and progress in IndexedDB
 
 ---
+

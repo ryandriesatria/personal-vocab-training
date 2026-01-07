@@ -1,6 +1,35 @@
 # PersonalKrVocabTraining
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.1.
+Daily Korean-English vocabulary quiz that helps you build a consistent habit. The app serves 10-word quizzes, uses multiple-choice answers, and tracks completion totals by level (A, B, C, D, MISC). Progress is stored locally so it works offline.
+
+## Features
+
+- Level-based quiz selection (A through D + MISC)
+- Multiple-choice answers with quick feedback animations
+- Completion totals by level
+- IndexedDB progress (no account required)
+- Import/export progress JSON
+- Offline-ready (PWA service worker)
+
+## Tech
+
+Angular 21 (signal-based) with Tailwind CSS. Project generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.1.
+
+## Vocabulary source
+
+The vocabulary/corpus is sourced from the [kengdic](https://github.com/garfieldnate/kengdic) project.
+
+The `src/assets/vocab.json` file is generated from the kengdic TSV using the script at:
+
+```
+scripts/tsv-to-vocab.ts
+```
+
+Example command (requires a TypeScript runner such as `tsx`):
+
+```bash
+npx tsx scripts/tsv-to-vocab.ts --input src/assets/raw/kengdic.tsv --out src/assets/vocab.json --hangulOnly true --inferLevel true
+```
 
 ## Development server
 
@@ -11,6 +40,18 @@ ng serve
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+## PWA / Offline
+
+The app is configured as a Progressive Web App (PWA). Offline behavior is enabled in production builds via Angular's service worker and `ngsw-config.json`, which prefetches core assets and `assets/vocab.json`.
+
+Build and serve the production output to test offline support:
+
+```bash
+ng build --configuration production
+```
+
+Then serve the `dist/` output with any static server (service worker does not run in `ng serve`).
 
 ## Code scaffolding
 

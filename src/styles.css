@@ -2,6 +2,32 @@
 
 @import "tailwindcss";
 
+:root {
+  color-scheme: light;
+  --app-bg: #fffaee;
+  --app-surface: #ffffff;
+  --app-surface-soft: #fff5dc;
+  --app-border: #e4d5bc;
+  --app-text: #1b100a;
+  --app-muted: #755b30;
+  --app-accent: #99582a;
+  --app-accent-strong: #6f1d1b;
+  --app-danger: #ab2c29;
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --app-bg: #0d0805;
+  --app-surface: #1b100a;
+  --app-surface-soft: #28180f;
+  --app-border: #362013;
+  --app-text: #f1eade;
+  --app-muted: #d6c09b;
+  --app-accent: #bb9457;
+  --app-accent-strong: #e28987;
+  --app-danger: #d34d4b;
+}
+
 @layer utilities {
   @keyframes quiz-card-enter {
     0% {

@@ -15,9 +15,9 @@ A lightweight daily quiz app that:
 1. gives **10 KR→EN questions per quiz**,
 2. lets you **guess answers in a quiz format**,
 3. **records correct answers**, and
-4. ensures **future quizzes don’t include words you’ve already answered correctly**.
+4. tracks **completion totals by level** for words you answer correctly.
 
-Plus: **interactive and user-friendly** UI with **simple animations** (micro-interactions).
+Plus: **interactive and user-friendly** UI with **simple animations** (micro-interactions) and **offline-ready PWA support**.
 
 ---
 
@@ -38,7 +38,7 @@ Plus: **interactive and user-friendly** UI with **simple animations** (micro-int
 5. App gives **instant feedback** (Correct/Incorrect) with a small animation.
 6. Repeat until **10 questions** done.
 7. End screen shows **score + list of correct/incorrect**.
-8. Correct answers get marked as “mastered” so they **won’t appear again** in future quizzes.
+8. Correct answers count toward your **completion totals** for the selected level.
 
 ---
 
@@ -46,7 +46,7 @@ Plus: **interactive and user-friendly** UI with **simple animations** (micro-int
 
 ### 1) Quiz generation (10 unique words)
 
-* Pull 10 words from the vocabulary pool that are **not yet mastered**.
+* Pull 10 words from the vocabulary pool **for the selected level**.
 * Ensure **no duplicates in the same quiz**.
 
 ### 2) Answer input + validation
@@ -58,11 +58,10 @@ Plus: **interactive and user-friendly** UI with **simple animations** (micro-int
   * Exact match (case-insensitive, trimmed),
   * Optionally accept multiple correct synonyms if stored.
 
-### 3) Progress tracking (the “non-repeating” rule)
+### 3) Progress tracking (completion by level)
 
-* When user gets a word correct, store it as **mastered**.
-* Future quizzes exclude mastered words.
-* If user gets it wrong, keep it eligible for future quizzes.
+* When user gets a word correct, add it to **completion totals** for that level.
+* Future quizzes may still include the same word.
 
 ### 4) Results screen
 
@@ -94,7 +93,7 @@ You only need a few objects:
 * `id`
 * `kr` (Korean word)
 * `en` (English answer) OR `enAnswers[]` (if multiple)
-* `isMastered` (true/false) OR `masteredAt` timestamp
+* `level` (A, B, C, D, MISC)
 
 **QuizAttempt**
 
@@ -108,7 +107,7 @@ You only need a few objects:
 
 Storage can be local first (fast MVP):
 
-* Mobile/web local storage / SQLite
+* IndexedDB (browser)
 * Optional login later
 
 ---
@@ -118,8 +117,8 @@ Storage can be local first (fast MVP):
 1. **Home**
 
 * “Start Quiz”
-* “Mastered count: X”
-* “Remaining: Y”
+* “Completion totals by level”
+* “Choose level”
 
 2. **Quiz Screen**
 
@@ -139,10 +138,10 @@ Storage can be local first (fast MVP):
 
 ## Edge Cases (handle in MVP)
 
-* If remaining unmastered words < 10:
+* If selected level has fewer than 10 words:
 
   * Show fewer questions **or**
-  * show message: “You’ve mastered all available words—add more to continue.”
+  * show message: “No words for this level—choose another level.”
 
 ---
 
@@ -162,7 +161,7 @@ These are tempting but will slow you down:
 ## MVP Success Criteria (simple metrics)
 
 * You can complete 10 questions in under 3 minutes.
-* Mastered words never repeat.
+* Completion totals tracked by level.
 * You feel motivated enough to do it daily.
 
 ---
