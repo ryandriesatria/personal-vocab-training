@@ -31,6 +31,23 @@
       class="animate-quiz-enter rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] p-8 text-center shadow-lg"
       [class.animate-quiz-correct]="quizStore.feedback() === 'correct'"
       [class.animate-quiz-shake]="quizStore.feedback() === 'incorrect'"
+      [class.border-emerald-500]="quizStore.feedback() === 'correct'"
+      [class.border-red-500]="quizStore.feedback() === 'incorrect'"
+      [class.animate-quiz-border]="quizStore.feedback() !== 'none'"
+      [style.--quiz-border-glow]="
+        quizStore.feedback() === 'correct'
+          ? 'rgba(22, 163, 74, 0.22)'
+          : quizStore.feedback() === 'incorrect'
+            ? 'rgba(239, 68, 68, 0.22)'
+            : 'transparent'
+      "
+      [style.--quiz-border-glow-2]="
+        quizStore.feedback() === 'correct'
+          ? 'rgba(22, 163, 74, 0.1)'
+          : quizStore.feedback() === 'incorrect'
+            ? 'rgba(239, 68, 68, 0.1)'
+            : 'transparent'
+      "
     >
       <p class="text-xs uppercase tracking-[0.3em] text-[var(--app-muted)]">Korean word</p>
       @if (quizStore.currentWord(); as word) {
@@ -44,8 +61,8 @@
       <div class="flex justify-center">
         <div
           class="animate-quiz-choice rounded-full border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-6 py-2 text-sm font-semibold"
-          [class.text-[var(--app-accent-strong)]]="quizStore.feedback() === 'correct'"
-          [class.text-[var(--app-danger)]]="quizStore.feedback() === 'incorrect'"
+          [class.text-emerald-500]="quizStore.feedback() === 'correct'"
+          [class.text-red-500]="quizStore.feedback() === 'incorrect'"
         >
           {{ quizStore.feedback() === 'correct' ? 'Correct!' : 'Incorrect.' }}
         </div>

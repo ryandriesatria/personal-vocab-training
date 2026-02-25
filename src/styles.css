@@ -81,4 +81,26 @@
   .animate-quiz-choice {
     animation: quiz-correct 180ms ease-out;
   }
+
+  @keyframes quiz-border-pulse {
+    0% {
+      box-shadow:
+        0 0 0 0 var(--quiz-border-glow, transparent),
+        0 0 0 0 var(--quiz-border-glow-2, transparent);
+    }
+    60% {
+      box-shadow:
+        0 0 0 6px var(--quiz-border-glow, transparent),
+        0 0 0 12px var(--quiz-border-glow-2, transparent);
+    }
+    100% {
+      box-shadow:
+        0 0 0 10px transparent,
+        0 0 0 18px transparent;
+    }
+  }
+
+  .animate-quiz-border {
+    animation: quiz-border-pulse 520ms ease-out;
+  }
 }

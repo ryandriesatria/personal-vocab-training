@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
-import { shareReplay } from 'rxjs';
+import { map, shareReplay } from 'rxjs';
 
 import { VocabWord } from '../models';
 
@@ -10,7 +10,15 @@ import { VocabWord } from '../models';
 })
 export class VocabRepositoryService {
   private readonly http = inject(HttpClient);
-  private readonly words$ = this.http.get<VocabWord[]>('assets/vocab.json').pipe(shareReplay(1));
+  private readonly words$ = this.http.get<VocabWord[]>('assets/vocab.json').pipe(
+    map((words) =>
+      words.map((word) => ({
+        ...word,
+        level: word.level ?? 'MISC'
+      }))
+    ),
+    shareReplay(1)
+  );
 
   readonly words = toSignal(this.words$, { initialValue: [] });
 

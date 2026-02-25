@@ -101,7 +101,7 @@ async function main() {
     if (enList.length === 0) continue;
 
     const levelFromData = row?.level ? String(row.level).trim() : null;
-    const level = levelFromData || (inferLevel ? heuristicLevel(kr) : null);
+    const level = levelFromData || (inferLevel ? heuristicLevel(kr) : 'MISC');
 
     vocab.push({
       id: `w${String(vocab.length + 1).padStart(5, "0")}`,
@@ -119,11 +119,11 @@ async function main() {
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(vocab, null, 2), "utf8");
 
-  console.log(`✅ Generated ${vocab.length} entries -> ${out}`);
+  console.log(`Generated ${vocab.length} entries -> ${out}`);
   console.log(`Options: hangulOnly=${hangulOnly}, inferLevel=${inferLevel}`);
 }
 
 main().catch((e) => {
-  console.error("❌ Failed:", e);
+  console.error("Failed:", e);
   process.exit(1);
 });

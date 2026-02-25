@@ -37,6 +37,7 @@ export class HomeComponent implements OnInit {
   readonly completedCount = computed(() => this.progress().completedIds.length);
   readonly levels: VocabLevel[] = ['A', 'B', 'C', 'D', 'MISC'];
   readonly selectedLevel = signal<VocabLevel>('A');
+  readonly showSettings = signal(false);
 
   async ngOnInit(): Promise<void> {
     const loaded = await this.progressStorage.load();
@@ -47,6 +48,10 @@ export class HomeComponent implements OnInit {
   startQuiz(): void {
     this.quizStore.setLevel(this.selectedLevel());
     void this.router.navigateByUrl('/quiz');
+  }
+
+  toggleSettings(): void {
+    this.showSettings.update((value) => !value);
   }
 
   refreshExport(): void {

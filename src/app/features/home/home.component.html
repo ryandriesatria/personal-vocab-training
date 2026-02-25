@@ -69,62 +69,74 @@
           Import / Export Progress
         </h2>
       </div>
-      <button
-        class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
-        type="button"
-        (click)="refreshExport()"
-      >
-        Refresh
-      </button>
-    </div>
-
-    <div class="mt-4 grid gap-4 lg:grid-cols-2">
-      <div class="space-y-2">
-        <label class="text-sm font-semibold text-[var(--app-text)]" for="export-progress">
-          Export
-        </label>
-        <textarea
-          class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
-          id="export-progress"
-          name="export-progress"
-          readonly
-          [formControl]="exportControl"
-        ></textarea>
+      <div class="flex flex-wrap items-center gap-2">
         <button
-          class="inline-flex items-center justify-center rounded-full bg-[var(--app-accent-strong)] px-4 py-2 text-xs font-semibold text-[var(--app-surface)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent-strong)]"
+          class="inline-flex cursor-pointer items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
           type="button"
-          (click)="copyExport()"
+          (click)="toggleSettings()"
         >
-          Copy export
+          {{ showSettings() ? 'Hide settings' : 'Show settings' }}
+        </button>
+        <button
+          class="inline-flex cursor-pointer items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
+          type="button"
+          (click)="refreshExport()"
+          [disabled]="!showSettings()"
+        >
+          Refresh
         </button>
       </div>
+    </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-semibold text-[var(--app-text)]" for="import-progress">
-          Import
-        </label>
-        <textarea
-          class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
-          id="import-progress"
-          name="import-progress"
-          placeholder="Paste your progress JSON here"
-          [formControl]="importControl"
-        ></textarea>
-        <div class="text-xs">
-          @if (importError()) {
-            <p class="text-[var(--app-danger)]">{{ importError() }}</p>
-          } @else if (importSuccess()) {
-            <p class="text-[var(--app-accent-strong)]">Import complete.</p>
-          }
+    @if (showSettings()) {
+      <div class="mt-4 grid gap-4 lg:grid-cols-2">
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-[var(--app-text)]" for="export-progress">
+            Export
+          </label>
+          <textarea
+            class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
+            id="export-progress"
+            name="export-progress"
+            readonly
+            [formControl]="exportControl"
+          ></textarea>
+          <button
+            class="inline-flex items-center justify-center rounded-full bg-[var(--app-accent-strong)] px-4 py-2 text-xs font-semibold text-[var(--app-surface)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent-strong)]"
+            type="button"
+            (click)="copyExport()"
+          >
+            Copy export
+          </button>
         </div>
-        <button
-          class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
-          type="button"
-          (click)="importProgress()"
-        >
-          Import progress
-        </button>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-[var(--app-text)]" for="import-progress">
+            Import
+          </label>
+          <textarea
+            class="min-h-[160px] w-full rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-soft)] px-4 py-3 text-xs text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
+            id="import-progress"
+            name="import-progress"
+            placeholder="Paste your progress JSON here"
+            [formControl]="importControl"
+          ></textarea>
+          <div class="text-xs">
+            @if (importError()) {
+              <p class="text-[var(--app-danger)]">{{ importError() }}</p>
+            } @else if (importSuccess()) {
+              <p class="text-[var(--app-accent-strong)]">Import complete.</p>
+            }
+          </div>
+          <button
+            class="inline-flex items-center justify-center rounded-full border border-[var(--app-border)] px-4 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:text-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)]"
+            type="button"
+            (click)="importProgress()"
+          >
+            Import progress
+          </button>
+        </div>
       </div>
-    </div>
+    }
   </div>
 </section>
